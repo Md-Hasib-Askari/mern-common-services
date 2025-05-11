@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 
 import authRoutes from './routes/auth';
 import protectedRoutes from './routes/protected';
+import adminRoutes from './routes/admin';
 
 dotenv.config({
     path: '.env',
@@ -24,6 +25,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/authentic
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+
+// Role-based access control example
+app.use('/api/v1/admin', adminRoutes);
 
 // Protected route example
 app.use('/api', protectedRoutes);
