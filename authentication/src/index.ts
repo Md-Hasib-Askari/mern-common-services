@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
 import authRoutes from './routes/auth';
+import protectedRoutes from './routes/protected';
 
 dotenv.config({
     path: '.env',
@@ -23,6 +24,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/authentic
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+
+// Protected route example
+app.use('/api', protectedRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;

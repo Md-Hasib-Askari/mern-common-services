@@ -48,11 +48,77 @@ export const login = async (req: Request, res: Response): Promise<any> => {
             email: user.email,
             roles: ["user"], // Default role
         };
-        const token = TokenService.generateToken(tokenPayload);
+        const accessToken = TokenService.generateAccessToken(tokenPayload);
+        const refreshToken = TokenService.generateRefreshToken(tokenPayload);
 
-        res.status(200).json({ sucess: true, token, message: "Login successful" });
+        user.refreshToken = refreshToken; // Store the refresh token in the database
+        await user.save();
+
+        res.status(200).json({ sucess: true, accessToken, refreshToken, message: "Login successful" });
     } catch (error) {
         console.error("Login error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const refreshTokenHandler = async (req: Request, res: Response): Promise<any> => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+        return res.status(401).json({ message: "Refresh token is missing" });
+    }
+
+    try {
+        // Verify the refresh token
+        const decoded = TokenService.verifyToken(refreshToken);
+        if (!decoded) {
+            return res.status(403).json({ message: "Invalid or expired refresh token" });
+        }
+
+        // Find the user by ID and check the stored refresh token
+        const user = await User.findById(decoded.userId);
+        if (!user || user.refreshToken !== refreshToken) {
+            return res.status(403).json({ message: "Invalid or expired refresh token" });
+        }
+
+        const tokenPayload = {
+            userId: decoded.userId,
+            email: decoded.email,
+            roles: decoded.roles
+        };
+
+        // Generate new access and refresh tokens
+        const newAccessToken = TokenService.generateAccessToken(tokenPayload);
+        const newRefreshToken = TokenService.generateRefreshToken(tokenPayload);
+
+        // Update the user's refresh token in the database
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        res.status(200).json({ sucess: true, accessToken: newAccessToken, refreshToken: newRefreshToken, message: "Tokens refreshed successfully" });
+    } catch (error) {
+        console.error("Refresh token error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const logout = async (req: Request, res: Response): Promise<any> => {
+    let userObj = req.headers["user"] as string;
+    if (!userObj) {
+        return res.status(401).json({ message: "User information is missing" });
+    }
+    const { userId, email } = JSON.parse(userObj) as { userId: string; email: string };
+
+    try {
+        // Find the user by refresh token and remove it
+        const user = await User.findOneAndUpdate({ _id: userId }, { refreshToken: null });
+        if (!user) {
+            return res.status(403).json({ message: "Invalid or expired refresh token" });
+        }
+
+        res.status(200).json({ sucess: true, message: "Logged out successfully" });
+    } catch (error) {
+        console.error("Logout error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 }

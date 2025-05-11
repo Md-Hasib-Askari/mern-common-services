@@ -1,11 +1,15 @@
 import jwt from 'jsonwebtoken';
 
 import { TokenPayload } from '../types/tokenPayload';
-import { JWT_SECRET, JWT_EXPIRATION } from '../config/config';
+import { JWT_SECRET, ACCESS_TOKEN_EXPIRY, REFRESH_TOKEN_EXPIRY } from '../config/config';
 
 export class TokenService {
-    static generateToken(payload: TokenPayload): string {
-        return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRATION as jwt.SignOptions['expiresIn'] });
+    static generateAccessToken(payload: TokenPayload): string {
+        return jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY as jwt.SignOptions['expiresIn'] });
+    }
+
+    static generateRefreshToken(payload: TokenPayload): string {
+        return jwt.sign(payload, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY as jwt.SignOptions['expiresIn'] });
     }
 
     static verifyToken(token: string): TokenPayload | null {
