@@ -44,8 +44,13 @@ This repository provides a collection of modularized services and utilities buil
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/your-username/mern-common-services.git
+    git clone https://github.com/Md-Hasib-Askari/mern-common-services.git
     cd mern-common-services
+    ```
+
+2. Select any of the services
+    ```bash
+    cd authentication
     ```
 
 2. Install dependencies:
